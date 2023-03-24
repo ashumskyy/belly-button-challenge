@@ -9,6 +9,7 @@ loadDropDown()
 
 function optionChanged(sample_id) {
     buildChart(sample_id)
+    buildBubble(sample_id);
 }
 
 function loadDropDown() {
@@ -20,14 +21,13 @@ function loadDropDown() {
                 .text(sample_names[i])
                 .property("value", sample_names[i])
         }
-        buildChart(sample_names[0])
+        buildChart(sample_names[0]),
+            buildBubble(sample_names[0])
     })
 }
 
 
 function buildChart(sample_id) {
-
-
 
     // Fetch the JSON data and console log it
     d3.json(url).then(function(data) {
@@ -38,10 +38,16 @@ function buildChart(sample_id) {
         var sample_result = sample_array[0]
         console.log(sample_result)
 
+        // Use otu_ids as the labels for the bar chart.
         var bar_otu_ids = sample_result.otu_ids.slice(0, 10).map(otu_id => "OTU " + otu_id).reverse()
-        var bar_otu_lables = sample_result.otu_labels.slice(0, 10).reverse()
-        var bar_sample_values = sample_result.sample_values.slice(0, 10).reverse()
+        console.log(bar_otu_ids)
 
+        // Use otu_labels as the hovertext for the chart.
+        var bar_otu_lables = sample_result.otu_labels.slice(0, 10).reverse()
+        console.log(bar_otu_lables)
+            // Use sample_values as the values for the bar chart.
+        var bar_sample_values = sample_result.sample_values.slice(0, 10).reverse()
+        console.log(bar_sample_values)
 
         var plotBar = [{
             x: bar_sample_values,
@@ -62,10 +68,48 @@ function buildChart(sample_id) {
     });
 }
 
-// // Extracting the data form json
-// var sampleData = data.samples[0]
 
-// // Defining the trace for tha bar chart
-// var trace1 = {
 
-// }
+function buildBubble(sample_id) {
+    d3.json(url).then(function(data) {
+        var samples = data.samples
+        var sample_array = samples.filter(sample => sample.id == sample_id)
+        var sample_result = sample_array[0]
+        console.log(sample_result)
+
+        // Use otu_ids for the x values.
+        // Use otu_ids for the marker colors.
+        var bubble_otu_ids = sample_result.otu_ids
+        console.log(bubble_otu_ids)
+
+        // Use sample_values for the y values.
+        // Use sample_values for the marker size.
+        var bubble_sample_values = sample_result.sample_values
+        console.log(bubble_sample_values)
+            // Use otu_labels for the text values.
+        var bubble_otu_lables = sample_result.otu_labels
+
+        // create a bubble chart 
+        var plotBubble = {
+            x: bubble_otu_ids,
+            y: bubble_sample_values,
+            mode: 'markers',
+            marker: {
+                size: bubble_sample_values,
+                color: bubble_otu_ids,
+                colorscale: 'Earth',
+            },
+            text: bubble_otu_lables
+        };
+
+        var bubbleLayout = {
+            xaxis: { title: 'OTU ID' },
+            yaxis: { title: 'Sample Values' },
+            hovermode: 'closest',
+        };
+
+        Plotly.newPlot('bubble', plotBubble, bubbleLayout);
+
+    })
+
+}
